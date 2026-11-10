@@ -1,0 +1,28 @@
+{
+  "sqrt": {
+    "positive_normals": 32512,
+    "max_relative_error": 0.0038835098164954423,
+    "input": "0x81",
+    "output": "0x2000"
+  },
+  "mul": {
+    "normal_significand_pairs": 16384,
+    "max_relative_error": 0.007691841802434741,
+    "a": "0x3f9e",
+    "b": "0x3fd1",
+    "output": "0x4000",
+    "subnormal_quirk_example": {
+      "a": "0x0080",
+      "b": "0x3f00",
+      "result": "0x0"
+    }
+  },
+  "q_mul": {
+    "random_pairs": 100000,
+    "seed": 20261110,
+    "exact_reference_pass": true,
+    "overflow_pairs": 99586,
+    "max_pre_wrap_absolute_error": 4.768298822455108e-07,
+    "bound_half_lsb": 4.76837158203125e-07
+  }
+}

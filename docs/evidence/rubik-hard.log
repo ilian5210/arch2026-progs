@@ -1,0 +1,2 @@
+PASS: 2644/2644 distance-11 states; optimal paths replayed on target
+maximum_instret=6858082 state=12347651111111 budget=7500000

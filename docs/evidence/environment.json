@@ -1,0 +1,24 @@
+{
+  "implementation_commit": "c39eb59dfd275bfc0f1d7696abca517c9cd22db5",
+  "framework_commit": "fd2d7c1",
+  "rv32emu_commit": "9dbff65c4d6a40d64d3bbb38f4c5a20d6e885e24",
+  "playground_commit": "914f7715f8d7f8678892a9fd91f78b40de351fc6",
+  "toolchain": "xPack GCC 15.2.0-1 (GCC 15.2.0; GNU binutils 2.45)",
+  "flags": "-march=rv32i_zicsr -mabi=ilp32 -ffreestanding -fno-pic -fno-stack-protector",
+  "optimization_levels": [
+    "O1",
+    "O2",
+    "O3",
+    "Os"
+  ],
+  "compiler_archive_sha256": "6588e8351455fad8aca37551f0e5a5543f3346bfa9a837cf03cbd3bdd4989f8f",
+  "codetrial_commit": "0406460cb9e7f96196bd278fc0a2d3cedb6a8fe1",
+  "target_named_tests_per_build": 166,
+  "target_named_test_executions_four_builds": 664,
+  "local_driver_points": 100,
+  "interview_completed": false,
+  "trusted_framework_commit": "fd2d7c17db223807c342e3f210c769d23d1865b1",
+  "trusted_local_grade_points": 100,
+  "hardest_layer_states_checked": 2644,
+  "hardest_layer_max_instret": 6858082
+}
