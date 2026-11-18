@@ -1,6 +1,10 @@
-# Complete Applications on Bare-Metal RV32I
+# CA2026 Homework 2: Complete Applications on Bare-Metal RV32I
+
+[TOC]
 
 ## Scope and reproducibility
+
+[Submission repository](https://github.com/ilian5210/arch2026-progs) | [Successful GitHub Actions run](https://github.com/ilian5210/arch2026-progs/actions/runs/42775833996)
 
 This work implements four applications with portable C and manually written RV32I assembly: an optimal pocket-cube solver, software BFloat16 operations, binary greatest common divisor, and logic-based arithmetic with Q11.20 multiplication. The implementation follows the contract headers rather than assuming that every quiz operation has standard IEEE 754 behavior.
 
@@ -52,7 +56,7 @@ search_node:
 
 Here s9 is the current permutation rank, s4 points to its distance table, and s1 is the remaining depth allowance. Rejecting here avoids every address calculation and nibble extraction for the second heuristic. The O2 C listing computes equivalent bounds through the C search state; the manual search keeps its active coordinates and table bases live in saved registers.
 
-The compiler's O3 build is fastest on the shared benchmark at 28,328.8 instructions per call. Assembly needs approximately 16,224.8 in that same ELF, a 1.75-times speedup. The displayed O2 assembly figure is 16,222.3; the small difference comes from the benchmark caller, not a different assembly object. O3 expands C code to 3,688 bytes, while Os uses 1,776. Assembly code uses 1,524 bytes, but its explicit static frames make its total allocation 573 bytes larger than the smallest C implementation. Code size and complete footprint must be distinguished.
+The compiler's O3 build is fastest on the shared benchmark at 28,328.8 instructions per call. Assembly needs approximately 16,224.8 in that same ELF, a 1.75-times speedup. With the O2 caller the same assembly averages 16,222.3; the small difference comes from the caller, because the assembly object is unchanged. O3 expands C code to 3,688 bytes, while Os uses 1,776. Assembly code uses 1,524 bytes, but its explicit static frames make its total allocation 573 bytes larger than the smallest C implementation. Code size and complete footprint must be distinguished.
 
 All official depth, replay, invalid-state and buffer-boundary tests pass. An extra target run checks every one of the 2,644 distance-eleven states obtained from the first assignment's independent breadth-first oracle. Every returned path has eleven moves and solves the state in the independent cubie replay. The most expensive call retires 6,858,082 instructions for state 12347651111111, below the 7,500,000 limit. This complete hardest-layer check complements the published development vectors; it does not claim a fresh target sweep of every one of the 3,674,160 states.
 
@@ -160,7 +164,7 @@ Halfway cases round toward positive infinity: the stored products of 3 and 52428
 
 The [C implementation](https://github.com/ilian5210/arch2026-progs/blob/c39eb59dfd275bfc0f1d7696abca517c9cd22db5/src/fixed/fixed.c) holds a wide magnitude in two unsigned words. Addition propagates carry, and shifting transfers bit 31 of the low word to the high word. Sign correction uses two's complement. The explicit pair also prevents a compiler from replacing a wide shift-and-add loop with an unavailable wide multiplication helper. The rounding carry is checked before extracting product bits 20 through 51. Unsigned word operations avoid signed-overflow undefined behavior and implementation-defined signed right shifts.
 
-The [rounding and extraction](https://github.com/ilian5210/arch2026-progs/blob/c39eb59dfd275bfc0f1d7696abca517c9cd22db5/src/fixed/fixed.c#L48) is:
+The [rounding and extraction](https://github.com/ilian5210/arch2026-progs/blob/c39eb59dfd275bfc0f1d7696abca517c9cd22db5/src/fixed/fixed.c#L47) is:
 
 ```c
 hi += lo >= UINT32_C(0xfff80000);
@@ -178,19 +182,19 @@ The assembly product averages 214.4 instructions per call against 223.5 for the 
 
 ## 5. Measured comparison and validation
 
-The following tables are copied from the official measurement output. The assembly column is measured with the O2 caller; speedups use the caller of the fastest C variant. Full-precision CSV data, separate section sizes, environment revisions and additional-check logs are retained in [evidence](https://github.com/ilian5210/arch2026-progs/tree/main/docs/evidence).
+The first table reports average guest cycles per call after subtracting the harness baseline. The assembly column and the speedup use the same ELF as the fastest C variant for each function. The following size table reports bytes from implementation objects, excluding the harness. Full-precision CSV data, separate section sizes, environment revisions and additional-check logs are retained in [evidence](https://github.com/ilian5210/arch2026-progs/tree/20e2f85aafa2b511442ad1f387d2ba4ea0ab8803/docs/evidence).
 
-| Function | -O1 | -O2 | -O3 | -Os | asm | best C | asm vs best C |
-|---|---|---|---|---|---|---|---|
-| bf16.from_f32 | 11.1 | 12.2 | 13.8 | 12.2 | 6.1 | 11.1 | 1.81x |
-| bf16.mul | 94.3 | 87.2 | 88.6 | 91.3 | 57.4 | 87.2 | 1.52x |
-| bf16.sqrt | 330.8 | 332.2 | 333.6 | 338.4 | 18.6 | 330.8 | 17.76x |
-| fixed.op1 | 27.2 | 24.7 | 26.8 | 24.7 | 22.1 | 24.7 | 1.12x |
-| fixed.op2 | 4.0 | 4.0 | 5.9 | 4.0 | 4.0 | 4.0 | 1.00x |
-| fixed.op3 | 7.0 | 7.0 | 8.9 | 7.0 | 7.0 | 7.0 | 1.00x |
-| fixed.q_mul | 223.5 | 262.7 | 264.6 | 251.2 | 214.4 | 223.5 | 1.04x |
-| gcd.gcd | 101.6 | 116.6 | 118.8 | 119.7 | 92.9 | 101.6 | 1.09x |
-| rubik.solve | 39041.0 | 28710.3 | 28328.8 | 35662.5 | 16222.3 | 28328.8 | 1.75x |
+| Function | `-O1` C | `-O2` C | `-O3` C | `-Os` C | Best C level | Assembly, same ELF | Speedup |
+|---|---:|---:|---:|---:|---|---:|---:|
+| `bf16.from_f32` | 11.1 | 12.2 | 13.8 | 12.2 | `-O1` | 6.1 | 1.81x |
+| `bf16.mul` | 94.3 | 87.2 | 88.6 | 91.3 | `-O2` | 57.4 | 1.52x |
+| `bf16.sqrt` | 330.8 | 332.2 | 333.6 | 338.4 | `-O1` | 18.6 | 17.76x |
+| `fixed.op1` | 27.2 | 24.7 | 26.8 | 24.7 | `-O2` | 22.1 | 1.12x |
+| `fixed.op2` | 4.0 | 4.0 | 5.9 | 4.0 | `-O1` | 4.0 | 1.00x |
+| `fixed.op3` | 7.0 | 7.0 | 8.9 | 7.0 | `-O1` | 7.0 | 1.00x |
+| `fixed.q_mul` | 223.5 | 262.7 | 264.6 | 251.2 | `-O1` | 214.4 | 1.04x |
+| `gcd.gcd` | 101.6 | 116.6 | 118.8 | 119.7 | `-O1` | 92.9 | 1.09x |
+| `rubik.solve` | 39,041.0 | 28,710.3 | 28,328.8 | 35,662.5 | `-O3` | 16,224.8 | 1.75x |
 
 | Program | Variant | .text | .rodata | .data | .bss |
 |---|---|---|---|---|---|
@@ -217,15 +221,15 @@ The following tables are copied from the official measurement output. The assemb
 
 The unmodified local grader reports 100/100. Every one of the four optimization levels passes 52 Rubik, 42 BF16, 34 GCD and 38 fixed-point named tests, including shared runtime checks: 166 per configuration and 664 named test executions overall. The sweeps inside those tests cover many more individual inputs. Sanitizers pass for all four portable C implementations, ISA scans reject forbidden instructions and unresolved helpers, and the commit history and formatting checks pass. The instructor may still use additional inputs and newer harness revisions; these development results do not replace that evaluation.
 
-A fresh full clone of the instructor's framework at fd2d7c17db223807c342e3f210c769d23d1865b1 also grades the submission at 100/100 using its own harness, sanitizers and freshly built emulator. The [verification log](https://github.com/ilian5210/arch2026-progs/blob/main/docs/evidence/trusted-grade.log) records that separate check. The final local update still selects rv32emu 9dbff65c4d6a40d64d3bbb38f4c5a20d6e885e24.
+A fresh full clone of the instructor's framework at fd2d7c17db223807c342e3f210c769d23d1865b1 also grades the submission at 100/100 using its own harness, sanitizers and freshly built emulator. The [verification log](https://github.com/ilian5210/arch2026-progs/blob/20e2f85aafa2b511442ad1f387d2ba4ea0ab8803/docs/evidence/trusted-grade.log) records that separate check. On November 18, 2026, a fresh `make update` and `make grade` reproduced 100/100 with rv32emu `9dbff65c`. The [GitHub Actions run](https://github.com/ilian5210/arch2026-progs/actions/runs/42775833996) on the fork also scored 100/100; its `lint`, `chain`, and `grade` jobs all passed.
 
-The smallest footprint is selected independently from the fastest build. Rubik, BF16 and fixed-point C code are smallest at Os; GCD is also smallest at Os. Assembly reduces fixed-point total allocation, trades four extra bytes for GCD speed, trades a BF16 lookup table for faster square roots, and spends Rubik static frames to simplify the hot search loop. The charts are available as separate cycle, speedup and footprint figures; raw terminal logs accompany the key correctness checks.
+The smallest C footprint is at `-Os` for all four programs. The fastest C level can differ, so the size and speed comparisons use different baselines where appropriate. Assembly reduces fixed-point total allocation, trades four extra bytes for GCD speed, trades a BF16 lookup table for faster square roots, and spends Rubik static frames to simplify the hot search loop. The cycle chart shows all four compiler levels and the assembly figures from the `-O2` caller; the speedup chart uses the same-ELF comparison described above. Raw logs accompany the key correctness checks.
 
-![Cycle counts for all compiler levels and assembly](https://raw.githubusercontent.com/ilian5210/arch2026-progs/main/docs/evidence/cycles-per-call.svg)
+![Cycle counts for all compiler levels and assembly](https://raw.githubusercontent.com/ilian5210/arch2026-progs/20e2f85aafa2b511442ad1f387d2ba4ea0ab8803/docs/evidence/cycles-per-call.svg)
 
-![Assembly speedup against the best C build](https://raw.githubusercontent.com/ilian5210/arch2026-progs/main/docs/evidence/speedup.svg)
+![Assembly speedup against the best C build](https://raw.githubusercontent.com/ilian5210/arch2026-progs/20e2f85aafa2b511442ad1f387d2ba4ea0ab8803/docs/evidence/speedup.svg)
 
-![Implementation footprint by allocated section](https://raw.githubusercontent.com/ilian5210/arch2026-progs/main/docs/evidence/footprint.svg)
+![Implementation footprint by allocated section](https://raw.githubusercontent.com/ilian5210/arch2026-progs/20e2f85aafa2b511442ad1f387d2ba4ea0ab8803/docs/evidence/footprint.svg)
 
 To reproduce on this Mac, run the project helper with make test, make sanitize and make cycles. The helper selects the installed GCC 15.2 toolchain, analysis Python environment and modern Bash without modifying the framework's Makefile. Source changes were committed in small steps with the official hooks and their Change-Id chain. No test, contract header, grading script or budget was changed.
 
@@ -240,10 +244,6 @@ To reproduce on this Mac, run the project helper with make test, make sanitize a
 
 The arithmetic script builds a temporary host library from the submitted C files, measures error against host double precision for BF16, and uses arbitrary-precision integer arithmetic for fixed-point results and quantization error. The extra Rubik harness uses the official independent move replay on the complete distance-eleven list. Its generator can rebuild that list from the independent breadth-first oracle in the Assignment 1 checkout. These extra tests stay outside the graded source directories.
 
-## 6. Completion boundary and interview
-
-CodeTrial was built from source at 0406460cb9e7f96196bd278fc0a2d3cedb6a8fe1 using its pinned Rust 1.99.1 toolchain, and its local setup page was verified. Credential setup, a practice attempt and the completed recorded interview remain separate user actions. This report does not claim an interview result or recording. The final recording must include the complete task flow and both voices. During the actual attempt, answers and C code must come from the candidate; outside AI assistance is forbidden by the assignment.
-
 ## References
 
 - [Assignment 2 requirements](https://hackmd.io/@sysprog/2026-arch-homework2).
@@ -252,4 +252,3 @@ CodeTrial was built from source at 0406460cb9e7f96196bd278fc0a2d3cedb6a8fe1 usin
 - [Optimizing 2D Line Drawing on RV32I[M] with Fixed-Point Arithmetic](https://hackmd.io/@sysprog/line-draw-fixed-point), used as a model for format, bounds and instruction analysis; M instructions are not used here.
 - [Approximating the Sine Function in BF16](https://hackmd.io/@sysprog/bf16-sine), used as a model for separating mathematical approximation, rounding and measured error.
 - [RISC-V Assembly Programmer's Manual](https://github.com/riscv-non-isa/riscv-asm-manual).
-- [CodeTrial task mode](https://github.com/sysprog21/codetrial/blob/0406460cb9e7f96196bd278fc0a2d3cedb6a8fe1/docs/task-mode.md).
